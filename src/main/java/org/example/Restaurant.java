@@ -5,7 +5,9 @@ import java.util.List;
 
 public class Restaurant {
     private final int COOK_TIME = 5000;
-    private final int TIME_OUT = 4000;
+    private final int EAT_TIME = 4000;
+    private final int WAIT_ORDER = 1000;
+
 
     // Создаем официантов и говорим, что они готовы к работе
     final List<Steward> stewards = new ArrayList<>() {{
@@ -17,6 +19,7 @@ public class Restaurant {
 
     public void newOrder() {
         int i = 0;
+
         while (i < 5) {
             for (Steward steward : stewards) {
                 if (steward.lock.tryLock()) {
@@ -35,10 +38,16 @@ public class Restaurant {
     private void callSteward(Steward steward) {
         if (!Thread.currentThread().isInterrupted()) {
             System.out.println(Thread.currentThread().getName() + " пришел в ресторан");
+            try {
+                Thread.sleep(WAIT_ORDER);
+                System.out.println(Thread.currentThread().getName() + " готов сделать заказ");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             System.out.println(steward.getName() + " взял заказ");
             try {
                 System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
-                Thread.sleep(TIME_OUT);
+                Thread.sleep(COOK_TIME);
                 System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
 
             } catch (InterruptedException e) {
@@ -47,7 +56,7 @@ public class Restaurant {
             System.out.println(steward.getName() + " несет заказ для: " + Thread.currentThread().getName());
             try {
                 System.out.println(Thread.currentThread().getName() + " кушает");
-                Thread.currentThread().sleep(COOK_TIME);
+                Thread.sleep(EAT_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
