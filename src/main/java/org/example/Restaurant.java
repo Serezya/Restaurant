@@ -16,10 +16,10 @@ public class Restaurant {
         add(new Steward("Официант 3"));
     }};
 
+    Cook cook = new Cook("Повар");
 
     public void newOrder() {
         int i = 0;
-
         while (i < 5) {
             for (Steward steward : stewards) {
                 if (steward.lock.tryLock()) {
@@ -45,13 +45,19 @@ public class Restaurant {
                 e.printStackTrace();
             }
             System.out.println(steward.getName() + " взял заказ");
-            try {
-                System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
-                Thread.sleep(COOK_TIME);
-                System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (true) {
+                if (cook.cookLock.tryLock()) {
+                    try {
+                        System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
+                        Thread.sleep(COOK_TIME);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } finally {
+                        cook.cookLock.unlock();
+                        System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
+                        break;
+                    }
+                }
             }
             System.out.println(steward.getName() + " несет заказ для: " + Thread.currentThread().getName());
             try {
