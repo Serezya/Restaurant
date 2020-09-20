@@ -1,11 +1,11 @@
 package org.example;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.*;
 
 public class Steward {
     String name;
     Lock lock = new ReentrantLock();
+    Condition conditionLock = lock.newCondition();
 
     public String getName() {
         return name;

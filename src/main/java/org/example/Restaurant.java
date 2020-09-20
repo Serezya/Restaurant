@@ -25,11 +25,10 @@ public class Restaurant {
                 if (steward.lock.tryLock()) {
                     try {
                         callSteward(steward);
-                    } finally {
-                        steward.lock.unlock();
-                        i++;
-                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+                    i++;
                 }
             }
         }
@@ -45,21 +44,21 @@ public class Restaurant {
                 e.printStackTrace();
             }
             System.out.println(steward.getName() + " взял заказ");
-            while (true) {
-                if (cook.cookLock.tryLock()) {
-                    try {
-                        System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
-                        Thread.sleep(COOK_TIME);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } finally {
-                        cook.cookLock.unlock();
-                        System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
-                        break;
-                    }
+            steward.lock.unlock();
+
+            while (cook.cookLock.tryLock()) {
+                try{
+                    cook.makeDish();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    cook.cookLock.unlock();
+                    break;
                 }
             }
+            steward.lock.lock();
             System.out.println(steward.getName() + " несет заказ для: " + Thread.currentThread().getName());
+            steward.lock.unlock();
             try {
                 System.out.println(Thread.currentThread().getName() + " кушает");
                 Thread.sleep(EAT_TIME);
@@ -71,4 +70,3 @@ public class Restaurant {
         }
     }
 }
-
