@@ -2,6 +2,7 @@ package org.example;
 
 public class App {
     public static void main(String[] args) {
+
         Restaurant restaurant = new Restaurant();
 
         // Идем кушать в ресторан
@@ -12,3 +13,4 @@ public class App {
         new Thread(null, restaurant::newOrder, "Поcетитель 5").start();
     }
 }
+

@@ -6,7 +6,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Restaurant {
-    private final int COOK_TIME = 5000;
     private final int EAT_TIME = 4000;
     private final int WAIT_ORDER = 1000;
     ReentrantLock lock = new ReentrantLock();
@@ -24,7 +23,7 @@ public class Restaurant {
 
     public void newOrder() {
         boolean counter = true;
-        while(counter){
+        while (counter) {
             for (Steward steward : stewards) {
                 if (steward.lock.tryLock()) {
                     try {
@@ -53,20 +52,18 @@ public class Restaurant {
 
             lock.lock();
             while (!isCooked) {
-                    condition.await();
+                condition.await();
             }
 
-//            if (cook.cookLock.tryLock()) {
-                try{
-                    isCooked = cook.makeDish(condition);
-                } catch (Exception e) {
-                    System.out.println(Thread.currentThread().getName());
-                    e.printStackTrace();
-                } finally {
-                   lock.unlock();
-                }
-//                Thread.currentThread().interrupt();
-//            }
+            try {
+                isCooked = cook.makeDish(condition);
+            } catch (Exception e) {
+                System.out.println(Thread.currentThread().getName());
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+
             steward.lock.lock();
             System.out.println(steward.getName() + " несет заказ для: " + Thread.currentThread().getName());
             steward.lock.unlock();

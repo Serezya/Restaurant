@@ -19,19 +19,14 @@ public class Cook {
     }
 
     public boolean makeDish(Condition condition) throws InterruptedException {
-//        if (cookLock.tryLock()) {
-            try {
-                System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
-                int COOK_TIME = 5000;
-                TimeUnit.SECONDS.sleep(5);
-//                Thread.sleep(COOK_TIME);
-            } finally {
-                System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
-//                conditionCookLock.signalAll();
-//                cookLock.unlock();
-                condition.signalAll();
-                return true;
-            }
-//        }
+        try {
+            System.out.println("Повар готовит блюдо для: " + Thread.currentThread().getName());
+            int COOK_TIME = 5;
+            TimeUnit.SECONDS.sleep(COOK_TIME);
+        } finally {
+            System.out.println("Повар закончил готовить блюдо для: " + Thread.currentThread().getName());
+            condition.signalAll();
+            return true;
+        }
     }
 }
