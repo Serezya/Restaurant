@@ -2,12 +2,16 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Restaurant {
     private final int COOK_TIME = 5000;
     private final int EAT_TIME = 4000;
     private final int WAIT_ORDER = 1000;
-
+    ReentrantLock lock = new ReentrantLock();
+    Condition condition = lock.newCondition();
+    volatile boolean isCooked = true;
 
     // Создаем официантов и говорим, что они готовы к работе
     final List<Steward> stewards = new ArrayList<>() {{
@@ -19,22 +23,23 @@ public class Restaurant {
     Cook cook = new Cook("Повар");
 
     public void newOrder() {
-        int i = 0;
-        while (i < 5) {
+        boolean counter = true;
+        while(counter){
             for (Steward steward : stewards) {
                 if (steward.lock.tryLock()) {
                     try {
                         callSteward(steward);
+                        counter = false;
+                        break;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    i++;
                 }
             }
         }
     }
 
-    private void callSteward(Steward steward) {
+    private void callSteward(Steward steward) throws InterruptedException {
         if (!Thread.currentThread().isInterrupted()) {
             System.out.println(Thread.currentThread().getName() + " пришел в ресторан");
             try {
@@ -43,19 +48,25 @@ public class Restaurant {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println(steward.getName() + " взял заказ");
+            System.out.println(steward.getName() + " взял заказ от " + Thread.currentThread().getName());
             steward.lock.unlock();
 
-            while (cook.cookLock.tryLock()) {
+            lock.lock();
+            while (!isCooked) {
+                    condition.await();
+            }
+
+//            if (cook.cookLock.tryLock()) {
                 try{
-                    cook.makeDish();
-                } catch (InterruptedException e) {
+                    isCooked = cook.makeDish(condition);
+                } catch (Exception e) {
+                    System.out.println(Thread.currentThread().getName());
                     e.printStackTrace();
                 } finally {
-                    cook.cookLock.unlock();
-                    break;
+                   lock.unlock();
                 }
-            }
+//                Thread.currentThread().interrupt();
+//            }
             steward.lock.lock();
             System.out.println(steward.getName() + " несет заказ для: " + Thread.currentThread().getName());
             steward.lock.unlock();
@@ -66,6 +77,7 @@ public class Restaurant {
                 e.printStackTrace();
             }
             System.out.println(Thread.currentThread().getName() + " уходит");
+            isCooked = false;
             Thread.currentThread().interrupt();
         }
     }
